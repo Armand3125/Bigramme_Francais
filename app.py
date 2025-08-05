@@ -9,7 +9,7 @@ st.title("🔤 Générateur de mots en français (Bigrammes filtrés, k=6)")
 
 # Chargement direct des matrices pré-calculées
 H = np.load("H.npy")
-start_probs = np.load("start_probs.npy")
+start_probs = np.load("debut.npy")
 
 mots_a_generer = st.number_input("Nombre de mots à générer", 1, 100, 10)
 l = st.number_input("Longueur des mots", 2, 20, 8)
