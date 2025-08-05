@@ -1,48 +1,20 @@
 import numpy as np
-import math
 import random
+import math
 import streamlit as st
 
 st.set_page_config(page_title="Générateur de mots FR", page_icon="🔤")
 
-st.title("🔤 Générateur de mots en français (Bigrammes filtrés)")
+st.title("🔤 Générateur de mots en français (Bigrammes filtrés, k=6)")
 
-with open("mots_fr.txt", "r", encoding="utf-8") as fichier:
-    L = [ligne.strip().lower() for ligne in fichier if ligne.strip()]
+# Chargement direct des matrices pré-calculées
+H = np.load("H.npy")
+start_probs = np.load("start_probs.npy")
 
-k = st.slider("Nombre de transitions conservées par ligne (k)", 1, 26, 3)
 mots_a_generer = st.number_input("Nombre de mots à générer", 1, 100, 10)
 l = st.number_input("Longueur des mots", 2, 20, 8)
 
-n = len(L)
-M = np.zeros((26, 26), dtype=int)
-H = np.zeros((26, 26), dtype=float)
-start_counts = np.zeros(26, dtype=int)
-
-for mot in L:
-    if mot:
-        first_letter = ord(mot[0]) - 97
-        if 0 <= first_letter < 26:
-            start_counts[first_letter] += 1
-    for j in range(len(mot) - 1):
-        a = ord(mot[j]) - 97
-        b = ord(mot[j + 1]) - 97
-        if 0 <= a < 26 and 0 <= b < 26:
-            M[a][b] += 1
-
-for i in range(26):
-    s = sum(M[i])
-    if s > 0:
-        H[i] = M[i] / s
-
-for i in range(26):
-    if np.count_nonzero(H[i]) > k:
-        top_k_idx = np.argsort(H[i])[-k:]
-        mask = np.ones(26, dtype=bool)
-        mask[top_k_idx] = False
-        H[i][mask] = 0
-
-start_probs = start_counts / np.sum(start_counts)
+# Calcul stats
 total = np.sum(H)
 P = H / total
 Hglob = -np.sum(P[P > 0] * np.log(P[P > 0]) / np.log(676))
@@ -53,6 +25,7 @@ st.markdown(f"**Bigrammes retenus :** {nb_valides}")
 st.markdown(f"**Entropie globale :** {Hglob:.3f}")
 st.markdown(f"**Nombre effectif de bigrammes :** {math.ceil(Neffectif)}")
 
+# Génération mots
 mots = []
 for _ in range(mots_a_generer):
     mot = ""
